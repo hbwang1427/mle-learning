@@ -128,7 +128,7 @@ MLE Job Market Growth (2020-2025)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│                   ML FRAMEWORK ECOSYSTEM (CV FOCUS)                      │
+│              ML FRAMEWORK ECOSYSTEM (CV & MULTIMODAL FOCUS)              │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │  DEEP LEARNING             │  COMPUTER VISION       │  DATA PROCESSING  │
@@ -136,23 +136,30 @@ MLE Job Market Growth (2020-2025)
 │  • PyTorch ⭐               │  • OpenCV ⭐            │  • NumPy ⭐         │
 │  • TensorFlow              │  • torchvision ⭐       │  • Pillow/PIL      │
 │  • JAX                     │  • Albumentations      │  • imageio         │
-│  • ONNX ⭐                  │  • Kornia              │  • scikit-image    │
-│                            │  • mmcv/mmdetection    │                    │
+│  • ONNX ⭐                  │  • Kornia              │  • decord (video)  │
+│                            │  • mmcv/mmdetection    │  • av (video)      │
 │                                                                          │
-│  3D VISION / GEOMETRY      │  MLOPS TOOLS           │  DEPLOYMENT       │
-│  ─────────────────────     │  ───────────           │  ──────────       │
-│  • Open3D                  │  • MLflow              │  • ONNX Runtime ⭐ │
-│  • PyTorch3D               │  • Weights & Biases    │  • TensorRT       │
-│  • OpenCV (calib, stereo)  │  • DVC ⭐               │  • CoreML         │
-│  • COLMAP                  │  • BentoML             │  • TFLite         │
-│                            │  • Docker ⭐            │  • OpenVINO       │
+│  MULTIMODAL / VLMs         │  3D VISION / GEOMETRY  │  DEPLOYMENT       │
+│  ─────────────────         │  ─────────────────────  │  ──────────       │
+│  • Hugging Face 🤗 ⭐       │  • Open3D              │  • ONNX Runtime ⭐ │
+│  • transformers            │  • PyTorch3D           │  • TensorRT       │
+│  • LLaVA                   │  • OpenCV (calib)      │  • CoreML         │
+│  • CLIP / OpenCLIP         │  • COLMAP              │  • TFLite         │
+│  • timm (vision encoders)  │  • Nerfstudio          │  • OpenVINO       │
 │                                                                          │
-│  FOUNDATION MODELS         │  ANNOTATION TOOLS      │  C++ LIBRARIES    │
-│  ─────────────────         │  ────────────────      │  ─────────────    │
-│  • Hugging Face 🤗          │  • CVAT                │  • OpenCV C++     │
-│  • timm (vision models)    │  • Label Studio        │  • Eigen          │
-│  • Segment Anything        │  • Roboflow            │  • libtorch       │
-│  • Depth Anything          │  • Supervisely         │  • TensorRT C++   │
+│  FOUNDATION MODELS         │  MLOPS TOOLS           │  C++ LIBRARIES    │
+│  ─────────────────         │  ───────────           │  ─────────────    │
+│  • Segment Anything (SAM)  │  • MLflow              │  • OpenCV C++     │
+│  • Depth Anything          │  • Weights & Biases    │  • Eigen          │
+│  • DINOv2                  │  • DVC ⭐               │  • libtorch       │
+│  • SigLIP                  │  • Docker ⭐            │  • TensorRT C++   │
+│                                                                          │
+│  ROBOTICS / VLA            │  ANNOTATION TOOLS      │  VIDEO MODELS     │
+│  ─────────────             │  ────────────────      │  ────────────     │
+│  • ROS / ROS2              │  • CVAT                │  • VideoMAE       │
+│  • PyBullet / MuJoCo       │  • Label Studio        │  • InternVideo    │
+│  • Isaac Sim               │  • Roboflow            │  • Video-LLaVA    │
+│  • robosuite               │  • Supervisely         │  • LanguageBind   │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
                               ⭐ = Must-know for this course
@@ -1249,63 +1256,105 @@ BEHAVIORAL
 
 ## 7. Latest Trends (2024-2025)
 
-### The Computer Vision & Perception Landscape
+### The Computer Vision & Multimodal AI Landscape
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 COMPUTER VISION TRENDS TIMELINE (2020-2025)                 │
+│              COMPUTER VISION & MULTIMODAL TRENDS (2020-2025)                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│ 2020 │ EfficientNet, DETR (Detection Transformers), NeRF introduction      │
+│ 2020 │ EfficientNet, DETR, NeRF introduction                               │
 │ ─────┤                                                                      │
 │      │                                                                      │
-│ 2021 │ Vision Transformers (ViT) breakthrough, CLIP, Segment Anything prep │
-│ ─────┤                                                                      │
+│ 2021 │ CLIP (vision-language), ViT breakthrough, DALL-E                    │
+│ ─────┤ ◄──── MULTIMODAL ERA BEGINS                                         │
 │      │                                                                      │
-│ 2022 │ Stable Diffusion, DINOv2, Masked Autoencoders                       │
+│ 2022 │ Stable Diffusion, Flamingo, BLIP, PaLM-E                            │
 │ ─────┤ ◄──── FOUNDATION MODEL ERA                                          │
 │      │                                                                      │
-│ 2023 │ SAM (Segment Anything), Depth Anything, 3D Gaussian Splatting       │
-│ ─────┤                                                                      │
+│ 2023 │ GPT-4V, LLaVA, SAM, Video-LLMs, RT-2 (VLA)                          │
+│ ─────┤ ◄──── VISION-LANGUAGE-ACTION EMERGES                                │
 │      │                                                                      │
-│ 2024 │ Vision-Language Models, Real-time 3D, Efficient Edge Deployment     │
-│ ─────┤                                                                      │
+│ 2024 │ World Models (Sora, Genie), VLAs scale up, Open VLMs               │
+│ ─────┤ ◄──── WORLD MODELS & EMBODIED AI                                    │
 │      │                                                                      │
-│ 2025 │ Embodied AI, Neural Rendering, Multi-sensor Fusion                  │
+│ 2025 │ Unified Multimodal Agents, Real-world Robotics, Edge VLMs          │
 │ ─────┤                                                                      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Trends in Computer Vision & Perception
+### Key Trends in Computer Vision & Multimodal AI
 
-#### 1. Foundation Models for Vision
+#### 1. Vision-Language Models (VLMs) & Foundation Models
 
 ```
-VISION FOUNDATION MODELS
+MULTIMODAL FOUNDATION MODELS
 ═══════════════════════════════════════════════════════════════
 
-IMAGE UNDERSTANDING
-├── DINOv2 (Meta): Self-supervised visual features
+VISION-LANGUAGE MODELS (VLMs)
+├── GPT-4V / GPT-4o (OpenAI): Multimodal reasoning
+├── Claude 3 Vision (Anthropic): Visual understanding
+├── Gemini (Google): Native multimodal
+├── LLaVA: Open-source visual instruction tuning
+├── BLIP-2 / InstructBLIP: Efficient VLM training
+├── Qwen-VL: Strong open-source VLM
+└── CogVLM: Visual expert integration
+
+VISION ENCODERS & BACKBONES
 ├── CLIP (OpenAI): Vision-language alignment
+├── SigLIP: Improved CLIP training
+├── DINOv2 (Meta): Self-supervised features
 ├── SAM (Meta): Segment Anything Model
-├── Depth Anything: Monocular depth estimation
-└── RADIO: AM-RADIO unified visual features
+├── Depth Anything: Monocular depth
+└── EVA / EVA-CLIP: Scaled vision transformers
 
 ARCHITECTURES
 ├── Vision Transformers (ViT)
 ├── Swin Transformer (hierarchical)
 ├── ConvNeXt (modernized CNNs)
-├── EfficientNet/EfficientViT
-└── MobileNet/MobileViT (edge)
+└── Hybrid: CNN + Transformer
 
 KEY CAPABILITIES:
 ─────────────────
-• Zero-shot transfer to downstream tasks
+• Visual question answering & reasoning
 • Dense prediction (segmentation, depth)
-• Multi-modal understanding (image + text)
-• Efficient adaptation (fine-tuning, adapters)
-• Robust feature extraction
+• Zero-shot recognition & grounding
+• Image/video captioning
+• Multimodal chain-of-thought
+```
+
+```
+VLM ARCHITECTURE PATTERN
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│                  TYPICAL VLM ARCHITECTURE                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   ┌─────────┐     ┌─────────────┐     ┌─────────────────┐  │
+│   │  Image  │────▶│   Vision    │────▶│   Projection    │  │
+│   │         │     │   Encoder   │     │   Layer (MLP)   │  │
+│   └─────────┘     │ (CLIP/SigLIP)     └────────┬────────┘  │
+│                   └─────────────┘              │            │
+│                                                ▼            │
+│   ┌─────────┐     ┌─────────────┐     ┌─────────────────┐  │
+│   │  Text   │────▶│  Tokenizer  │────▶│      LLM        │  │
+│   │ Prompt  │     │             │     │ (LLaMA/Mistral) │  │
+│   └─────────┘     └─────────────┘     └────────┬────────┘  │
+│                                                │            │
+│                                                ▼            │
+│                                        ┌─────────────┐     │
+│                                        │   Output    │     │
+│                                        │   (Text)    │     │
+│                                        └─────────────┘     │
+│                                                             │
+│   VARIANTS:                                                 │
+│   • Frozen encoder + trainable projector (efficient)       │
+│   • End-to-end fine-tuning (best quality)                  │
+│   • LoRA/QLoRA adaptation (balanced)                       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 #### 2. Depth Estimation & 3D Vision
@@ -1472,63 +1521,192 @@ SOFTWARE-HARDWARE CO-OPTIMIZATION
   FOV/Range          Accuracy            Thermal
 ```
 
-#### 6. Emerging CV Research Directions
+#### 6. Vision-Language-Action (VLA) Models
+
+```
+VISION-LANGUAGE-ACTION (VLA) MODELS
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│                     VLA ARCHITECTURE                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   ┌─────────┐  ┌─────────┐  ┌─────────┐                    │
+│   │ Vision  │  │Language │  │Proprio- │                    │
+│   │ (Camera)│  │(Command)│  │ception  │                    │
+│   └────┬────┘  └────┬────┘  └────┬────┘                    │
+│        │            │            │                          │
+│        └────────────┴────────────┘                          │
+│                     │                                       │
+│                     ▼                                       │
+│        ┌────────────────────────────┐                      │
+│        │    MULTIMODAL ENCODER      │                      │
+│        │   (VLM / Transformer)      │                      │
+│        └─────────────┬──────────────┘                      │
+│                      │                                      │
+│                      ▼                                      │
+│        ┌────────────────────────────┐                      │
+│        │     ACTION DECODER         │                      │
+│        │  (Continuous / Discrete)   │                      │
+│        └─────────────┬──────────────┘                      │
+│                      │                                      │
+│                      ▼                                      │
+│        ┌────────────────────────────┐                      │
+│        │   ROBOT CONTROL OUTPUT     │                      │
+│        │ (End-effector pose, joints)│                      │
+│        └────────────────────────────┘                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+KEY VLA MODELS:
+───────────────
+├── RT-1 (Google): Robotics Transformer, 130K demonstrations
+├── RT-2 (Google): VLM backbone, web-scale knowledge transfer
+├── RT-X: Cross-embodiment learning from Open X-Embodiment
+├── Octo: Open-source generalist robot policy
+├── OpenVLA: Open-source VLA, 970K episodes
+├── π0 (Physical Intelligence): Foundation model for robots
+└── Gato (DeepMind): Generalist agent (text, images, actions)
+
+CAPABILITIES:
+─────────────
+• Language-conditioned manipulation
+• Zero-shot task generalization
+• Visual reasoning for robotics
+• Multi-task learning across embodiments
+• Real-world deployment from simulation
+```
+
+#### 7. World Models & Video Understanding
+
+```
+WORLD MODELS FOR PERCEPTION & PREDICTION
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│                    WORLD MODEL CONCEPT                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   "Learn a compressed representation of the world          │
+│    that can simulate future states and outcomes"           │
+│                                                             │
+│   Observation ──▶ Encoder ──▶ Latent ──▶ Decoder ──▶ Future│
+│       (t)              │      Space           │       (t+1)│
+│                        │        │             │             │
+│                        │        ▼             │             │
+│                        │   ┌─────────┐        │             │
+│                        └──▶│ Dynamics│────────┘             │
+│                            │  Model  │                      │
+│                            └─────────┘                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+KEY WORLD MODELS & VIDEO FOUNDATION MODELS:
+───────────────────────────────────────────────────────────────
+
+VIDEO GENERATION (World Simulators)
+├── Sora (OpenAI): Text-to-video, physics understanding
+├── Runway Gen-3: Commercial video generation
+├── Pika: Consumer video generation
+├── Stable Video Diffusion: Open-source video
+└── VideoPoet (Google): Multimodal video generation
+
+DRIVING / AUTONOMOUS SYSTEMS
+├── GAIA-1 (Wayve): 9B param world model for driving
+├── DriveDreamer: Driving scene generation
+├── UniSim (Google): Universal simulator
+├── MILE: Model-based imitation learning
+└── Waymo's world model: Simulation for AV testing
+
+ROBOTICS & EMBODIED AI
+├── Dreamer V3: Model-based RL with world models
+├── UniPi: Video diffusion for robot planning
+├── SuSIE: Subgoal synthesis for robot manipulation
+└── GenAug: Generative augmentation for robotics
+
+VIDEO UNDERSTANDING
+├── Video-LLaVA: Video-language model
+├── VideoChat: Interactive video chat
+├── InternVideo2: Large-scale video foundation
+└── LanguageBind: Unified multimodal encoder
+
+APPLICATIONS IN CV/PERCEPTION:
+─────────────────────────────────
+• Autonomous driving simulation & prediction
+• Robot motion planning & task learning
+• Future frame prediction for safety
+• Synthetic training data generation
+• Scene understanding & physics modeling
+```
+
+#### 8. Emerging Research Directions
 
 ```
 CUTTING-EDGE RESEARCH AREAS
 ═══════════════════════════════════════════════════════════════
 
-NEURAL RENDERING
-├── NeRF (Neural Radiance Fields)
-├── 3D Gaussian Splatting
-├── Instant-NGP
-└── View synthesis for XR
+MULTIMODAL REASONING
+├── Visual chain-of-thought
+├── Spatial reasoning in VLMs
+├── Grounded reasoning (image regions)
+└── Multi-image / video reasoning
 
-EMBODIED AI & ROBOTICS
-├── Visual navigation
-├── Manipulation from vision
-├── Sim-to-real transfer
-└── Robot learning from video
+NEURAL 3D & RENDERING
+├── 3D Gaussian Splatting (real-time)
+├── NeRF variants (Instant-NGP, Nerfacto)
+├── Diffusion for 3D generation
+└── 4D scene reconstruction
 
-GENERATIVE VISION
-├── Diffusion models for CV
-├── Image/video generation
-├── Synthetic data generation
-└── Zero-shot recognition
+EFFICIENT MULTIMODAL
+├── TinyLLaVA, MobileVLM (edge VLMs)
+├── Quantized multimodal models
+├── Distillation from large VLMs
+└── Efficient visual tokenization
 
-SELF-SUPERVISED LEARNING
-├── Masked image modeling (MAE)
-├── Contrastive learning (SimCLR, DINO)
-├── Multi-modal pre-training
-└── Foundation model adaptation
+OPEN CHALLENGES
+├── Real-world generalization
+├── Long-horizon video understanding
+├── Embodied reasoning & planning
+├── Safety in autonomous systems
+└── Multimodal hallucination reduction
 ```
 
-### Skills to Develop for CV/Perception
+### Skills to Develop for CV/Perception & Multimodal
 
 ```
-CV/PERCEPTION MLE SKILLS
+CV/PERCEPTION & MULTIMODAL MLE SKILLS
 ═══════════════════════════════════════════════════════════════
 
 HIGH PRIORITY (Learn Now)
-├── Deep learning for CV (CNNs, ViT)
-├── Depth estimation techniques
-├── Object detection & segmentation
-├── Model optimization (quantization, pruning)
+├── Deep learning for CV (CNNs, ViT, Foundation Models)
+├── Vision-Language Models (VLMs) - architecture & fine-tuning
+├── Depth estimation & 3D vision techniques
+├── Object detection, segmentation (SAM, etc.)
+├── Model optimization (quantization, pruning, distillation)
 └── Edge deployment (ONNX, TensorRT, CoreML)
+
+MULTIMODAL & EMBODIED AI
+├── VLM training & fine-tuning (LLaVA, BLIP, etc.)
+├── Vision-Language-Action (VLA) models
+├── World models & video prediction
+├── Multimodal data pipelines
+├── Sim-to-real transfer
+└── CLIP/SigLIP embeddings for retrieval
 
 MEDIUM PRIORITY (Build Foundation)
 ├── Multi-view geometry & camera models
-├── Sensor fusion techniques
-├── 3D vision & point clouds
+├── Sensor fusion (camera, LiDAR, radar)
+├── 3D vision & point clouds (Open3D, PyTorch3D)
 ├── Real-time inference optimization
+├── Video understanding pipelines
 └── C++ for production systems
 
 DOMAIN SPECIFIC
-├── Autonomous systems perception
+├── Autonomous driving perception
+├── Robotics manipulation & navigation
 ├── AR/VR visual understanding
-├── Medical imaging
-├── Robotics vision
-└── Industrial inspection
+├── Medical imaging & analysis
+└── Industrial inspection & quality
 ```
 
 ---
@@ -1809,9 +1987,11 @@ RESOURCES:
 │                                                                             │
 │  ✓ Production ML involves data, training, deployment, and monitoring       │
 │                                                                             │
-│  ✓ Computer Vision is evolving rapidly: ViT, foundation models, depth      │
+│  ✓ Vision-Language Models (VLMs) are revolutionizing CV capabilities       │
 │                                                                             │
-│  ✓ Edge deployment & optimization are critical for CV applications         │
+│  ✓ VLAs & World Models enable embodied AI and robotic applications         │
+│                                                                             │
+│  ✓ Edge deployment & multimodal optimization are critical skills           │
 │                                                                             │
 │  ✓ This course focuses on CV/perception with hands-on depth estimation     │
 │                                                                             │
