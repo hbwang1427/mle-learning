@@ -881,10 +881,150 @@ OPTION 4: EDGE DEPLOYMENT
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Data & Model Versioning
+
+```
+DATA VERSION CONTROL (DVC) & ML ARTIFACTS
+═══════════════════════════════════════════════════════════════════════════
+
+WHY DATA VERSIONING?
+────────────────────────────────────────────────────────────────────────────
+• Datasets are too large for Git (images, videos, point clouds)
+• Need to reproduce exact training conditions
+• Track data lineage and transformations
+• Collaborate on datasets across teams
+• Roll back to previous data versions
+
+DVC WORKFLOW
+────────────────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        DVC + GIT WORKFLOW                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   LOCAL WORKSPACE                        REMOTE STORAGE                 │
+│   ───────────────                        ──────────────                 │
+│                                                                         │
+│   ┌─────────────┐    dvc add            ┌─────────────┐                │
+│   │  data/      │ ──────────────────▶   │   S3/GCS/   │                │
+│   │  images/    │    dvc push           │   Azure     │                │
+│   │  (large)    │ ◀──────────────────   │   Blob      │                │
+│   └─────────────┘    dvc pull           └─────────────┘                │
+│         │                                                               │
+│         ▼                                                               │
+│   ┌─────────────┐    git add/commit     ┌─────────────┐                │
+│   │ data.dvc    │ ──────────────────▶   │   GitHub/   │                │
+│   │ (pointer)   │                       │   GitLab    │                │
+│   │ (~1KB)      │                       │             │                │
+│   └─────────────┘                       └─────────────┘                │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+DVC COMMANDS CHEATSHEET
+────────────────────────────────────────────────────────────────────────────
+
+# Initialize DVC in your project
+$ dvc init
+
+# Track a large dataset
+$ dvc add data/training_images/
+  → Creates data/training_images.dvc (pointer file)
+  → Adds data/training_images/ to .gitignore
+
+# Configure remote storage
+$ dvc remote add -d myremote s3://my-bucket/dvc-storage
+
+# Push data to remote
+$ dvc push
+
+# Pull data on another machine
+$ dvc pull
+
+# Track data pipeline
+$ dvc run -n train -d data/ -d train.py -o model.pkl python train.py
+
+
+DVC PIPELINE EXAMPLE (dvc.yaml)
+────────────────────────────────────────────────────────────────────────────
+
+stages:
+  prepare:
+    cmd: python prepare_data.py
+    deps:
+      - raw_data/
+      - prepare_data.py
+    outs:
+      - processed_data/
+
+  train:
+    cmd: python train.py --config params.yaml
+    deps:
+      - processed_data/
+      - train.py
+    params:
+      - learning_rate
+      - batch_size
+    outs:
+      - models/depth_model.pt
+    metrics:
+      - metrics.json:
+          cache: false
+
+  evaluate:
+    cmd: python evaluate.py
+    deps:
+      - models/depth_model.pt
+      - test_data/
+    metrics:
+      - eval_metrics.json:
+          cache: false
+```
+
+```
+ML ARTIFACT VERSIONING ECOSYSTEM
+═══════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    WHAT TO VERSION IN ML PROJECTS                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   ARTIFACT TYPE        │  TOOL              │  STORAGE                  │
+│   ─────────────        │  ────              │  ───────                  │
+│   Source Code          │  Git               │  GitHub/GitLab            │
+│   Datasets             │  DVC               │  S3/GCS/Azure             │
+│   Model Weights        │  DVC / MLflow      │  S3/Model Registry        │
+│   Experiments          │  MLflow / W&B      │  Tracking Server          │
+│   Configs/Params       │  Git + DVC         │  Git + Remote             │
+│   Docker Images        │  Docker Registry   │  ECR/GCR/DockerHub        │
+│   Pipelines            │  DVC / Kubeflow    │  Git + Remote             │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+REPRODUCIBILITY STACK
+────────────────────────────────────────────────────────────────────────────
+
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │                    FULL REPRODUCIBILITY                             │
+   ├─────────────────────────────────────────────────────────────────────┤
+   │                                                                     │
+   │   Code        +   Data       +   Environment   +   Config          │
+   │   (Git)           (DVC)          (Docker)          (params.yaml)   │
+   │     │               │               │                 │            │
+   │     └───────────────┴───────────────┴─────────────────┘            │
+   │                           │                                         │
+   │                           ▼                                         │
+   │              ┌─────────────────────────┐                           │
+   │              │  REPRODUCIBLE TRAINING  │                           │
+   │              │  $ dvc repro            │                           │
+   │              └─────────────────────────┘                           │
+   │                                                                     │
+   └─────────────────────────────────────────────────────────────────────┘
+```
+
 ### CI/CD for ML
 
 ```
-ML CI/CD Pipeline
+ML CI/CD Pipeline (with Data Versioning)
 ═══════════════════════════════════════════════════════════════════════════
 
    CODE COMMIT
@@ -1787,9 +1927,10 @@ PHASE 1: Research & Setup                    PHASE 2: Data & Training
 │ • Literature review    │                   │ • Dataset selection    │
 │   - MiDaS, DPT         │                   │   - NYU Depth V2       │
 │   - Depth Anything     │                   │   - KITTI, Diode       │
-│   - ZoeDepth           │                   │ • Data augmentation    │
-│ • Architecture study   │                   │ • Training pipeline    │
-│ • Environment setup    │                   │ • Loss functions       │
+│   - ZoeDepth           │                   │ • Data versioning (DVC)│
+│ • Architecture study   │                   │ • Data augmentation    │
+│ • Environment setup    │                   │ • Training pipeline    │
+│   - Git, DVC, Docker   │                   │ • Loss functions       │
 │ • Baseline evaluation  │                   │   - Scale-invariant    │
 └────────────────────────┘                   │   - Gradient loss      │
          │                                   │ • Evaluation metrics   │
@@ -1842,9 +1983,11 @@ PHASE 1: Research & Setup                    PHASE 2: Data & Training
 │  • Zero-shot depth with foundation models                             │
 │  • Video depth consistency                                            │
 │                                                                        │
-│  CI/CD FOR ML:                                                         │
+│  CI/CD & VERSIONING:                                                   │
+│  • Data versioning with DVC                                           │
+│  • Model versioning and registry (MLflow)                             │
 │  • Automated testing pipeline                                         │
-│  • Model versioning and registry                                      │
+│  • DVC pipelines for reproducibility (dvc repro)                      │
 │  • Continuous monitoring in production                                │
 │                                                                        │
 └────────────────────────────────────────────────────────────────────────┘
