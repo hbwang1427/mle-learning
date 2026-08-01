@@ -1,0 +1,33 @@
+stages:
+  train:
+    cmd: python -m src.train
+    deps:
+      - data/synthetic_depth
+      - src/train.py
+      - src/model.py
+      - src/dataset.py
+      - src/losses.py
+      - src/metrics.py
+      - src/config.py
+    params:
+      - train.vision_model_name
+      - train.loss_fn
+      - train.lr
+      - train.batch_size
+      - train.epochs
+      - train.seed
+    outs:
+      - outputs/depth_head.pt
+    metrics:
+      - outputs/train_metrics.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m src.evaluate
+    deps:
+      - outputs/depth_head.pt
+      - src/evaluate.py
+      - data/synthetic_depth
+    metrics:
+      - outputs/eval_metrics.json:
+          cache: false

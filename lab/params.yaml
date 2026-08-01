@@ -1,0 +1,7 @@
+train:
+  vision_model_name: WinKawaks/vit-tiny-patch16-224
+  loss_fn: l1
+  lr: 0.001
+  batch_size: 16
+  epochs: 8
+  seed: 42
