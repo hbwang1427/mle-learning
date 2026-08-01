@@ -544,6 +544,60 @@ ML CODE REVIEW FLOW
                   Update experiment log / model registry
 ```
 
+### Reviewing via Git: Branches, Diffs, and Merge Strategies
+
+Reviewing "via git" means more than reading a diff in a browser tab.
+Knowing the underlying commands matters more in ML review than in typical
+software review, because you often need to actually *run* a teammate's
+branch to trust a metric claim, not just read the code that produced it.
+
+```
+CHECKING OUT SOMEONE ELSE'S PR LOCALLY (GitHub)
+──────────────────────────────────────────────────────────────────────────
+$ git fetch origin pull/123/head:review-pr-123
+$ git checkout review-pr-123
+$ python -m src.train --epochs 1        # actually run it, don't just read it
+
+COMPARING A BRANCH AGAINST ITS BASE
+──────────────────────────────────────────────────────────────────────────
+$ git diff main...exp/depth-vit-backbone            # only what the branch changed
+$ git log --oneline main..exp/depth-vit-backbone    # commits the branch adds
+$ git diff main...exp/depth-vit-backbone -- src/model.py   # scope to one file
+
+INLINE SUGGESTIONS
+──────────────────────────────────────────────────────────────────────────
+GitHub's "suggest a change" on a diff line produces a commit the author can
+accept with one click -- faster than prose comments for small, unambiguous
+fixes (a renamed variable, a typo, an off-by-one).
+```
+
+**Branch protection** turns the checklist from Section 4 into something CI
+actually enforces, instead of something reviewers have to remember:
+
+```
+BRANCH PROTECTION FOR develop / main  (GitHub: Settings → Branches)
+──────────────────────────────────────────────────────────────────────────
+☐ Require a pull request before merging (no direct pushes)
+☐ Require at least 1 approving review
+☐ Require status checks to pass before merging (lint, tests, smoke-train)
+☐ Require branches to be up to date with the base before merging
+☐ Do not allow bypassing the above, even for admins
+```
+
+**Merge strategy** matters for ML repos specifically because experiment
+branches accumulate a lot of noisy, non-final commits:
+
+| Strategy | What It Does | Best For |
+|---|---|---|
+| Merge commit | Keeps every commit + adds a merge commit | Long-lived branches with meaningful individual commits |
+| Squash and merge | Collapses the branch into one commit on the base | `exp/*` branches -- "try lr=0.01", "try lr=0.001", "fix typo" become one clean commit |
+| Rebase and merge | Replays commits onto the base, linear history | Small branches you haven't shared with anyone else |
+
+For `exp/*` branches specifically, **squash and merge** is usually right:
+nobody needs the archaeology of every failed hyperparameter guess in
+`develop`'s permanent history -- they need one commit in the Conventional
+Commits format from Section 2, with the experiment ID and final result.
+
 ### Common ML Anti-Patterns to Flag in Review
 
 | Anti-Pattern | Why It's a Problem | Fix |
@@ -554,7 +608,7 @@ ML CODE REVIEW FLOW
 | Copy-pasted preprocessing between train and serving code | Train/serve skew | Share one preprocessing module/package |
 | Committing a trained model binary directly to Git | Bloats repo, no versioning story | Track via DVC or a model registry |
 
-### Automating What You Can: Pre-commit & CI
+### Automating What You Can: Pre-commit Hooks
 
 ```
 pre-commit CONFIG (.pre-commit-config.yaml)
@@ -566,14 +620,107 @@ repos:
     hooks: [{id: black}]
   - repo: https://github.com/kynan/nbstripout
     hooks: [{id: nbstripout}]
-
-CI CHECKS (GitHub Actions example)
-──────────────────────────────────────────────────────────────────────────
-┌─────────┐   ┌─────────┐   ┌──────────────┐   ┌─────────────┐
-│  Lint   │──▶│  Unit   │──▶│  Data schema │──▶│ Smoke-train │
-│ (ruff)  │   │ tests   │   │  validation  │   │ 1-batch run │
-└─────────┘   └─────────┘   └──────────────┘   └─────────────┘
 ```
+
+### CI/CD with GitHub Actions for ML
+
+A workflow file at `.github/workflows/ci.yml` runs on events like
+`pull_request` or `push`. For ML repos, add two ML-specific jobs on top of
+standard lint/test: pulling DVC-tracked data, and a **smoke-train** (one
+epoch, a tiny batch) that catches a broken training loop in ~30 seconds
+instead of after a full multi-hour run.
+
+```yaml
+# .github/workflows/ci.yml
+name: ML CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: pytest tests/ -v
+
+  data-and-smoke-train:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Pull DVC-tracked data
+        run: dvc pull
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Smoke-train (1 epoch, catches a broken training loop)
+        run: python -m src.train --epochs 1 --batch_size 4
+```
+
+These are exactly the checks the branch protection rule above enforces:
+`develop`/`main` can't accept a merge until both jobs are green.
+
+**Continuous deployment** on merge to `main` -- e.g. build and push a
+serving image -- is the same idea, gated to one branch:
+
+```yaml
+# .github/workflows/cd.yml
+name: Build and Push Model Image
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+```
+
+**Bonus -- metrics on the PR itself:** [iterative/cml](https://cml.dev)
+(from the DVC team) turns a CI run's metrics into an automatic PR comment,
+so a reviewer sees the model's actual numbers without leaving GitHub:
+
+```yaml
+      - uses: iterative/setup-cml@v2
+      - name: Post metrics comment
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dvc metrics diff main --show-md > report.md
+          cml comment create report.md
+```
+
+Try this against the `lab/` project from this course: its `dvc.yaml`
+already writes `outputs/eval_metrics.json` as a `cache: false` metric,
+which is exactly what `dvc metrics diff` reads.
 
 ---
 
@@ -692,6 +839,13 @@ Take an existing academic or personal ML/CV project (yours) and bring it up
 to the standard covered in this class: versioned code, versioned data,
 reviewable structure, and documentation a stranger could onboard from.
 
+**Don't have a project ready?** Use this repo's `lab/` folder (the ViT
+depth estimation lab) instead — it's already structured as
+`src/{config,model,dataset,train,evaluate,infer}.py` with a synthetic
+dataset generator, so you can go straight to Steps 3-6 below: DVC-track
+`data/synthetic_depth/` (see `lab/DVC_PRACTICE.md`), add a model card, and
+open a self-reviewed PR.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    BEFORE / AFTER STANDARDIZATION                           │
@@ -750,6 +904,8 @@ STEP 6: Review
 ✓ README.md following the skeleton in Section 5
 ✓ One completed model card for your best model
 ✓ Self-reviewed PR using the checklist in Section 4
+✓ Stretch: a `.github/workflows/ci.yml` that lints + smoke-trains on PRs
+  (see Section 4's "CI/CD with GitHub Actions for ML")
 ```
 
 ---
@@ -777,6 +933,15 @@ STEP 6: Review
 │ Pre-commit hooks    │ pre-commit install                                │
 ├────────────────────┼────────────────────────────────────────────────────┤
 │ Log a model version │ MLflow Model Registry / W&B Artifacts             │
+├────────────────────┼────────────────────────────────────────────────────┤
+│ Check out a PR      │ git fetch origin pull/<n>/head:review && git      │
+│ locally             │ checkout review                                   │
+├────────────────────┼────────────────────────────────────────────────────┤
+│ Diff a branch vs    │ git diff main...exp/<branch>                      │
+│ its base only                                                            │
+├────────────────────┼────────────────────────────────────────────────────┤
+│ Squash-merge a PR   │ GitHub UI: "Squash and merge" (or                 │
+│                     │ git merge --squash exp/<branch>)                  │
 └────────────────────┴────────────────────────────────────────────────────┘
 ```
 
@@ -821,11 +986,18 @@ HOMEWORK BEFORE NEXT CLASS (Data Pipeline in Industry)
    ├── Git repo with proper .gitignore and branch structure
    ├── DVC-tracked data + at least a 2-stage dvc.yaml pipeline
    ├── README.md + one model card
+   ├── No project of your own? Use `lab/` in this repo (ViT depth lab) --
+   │   run through `lab/DVC_PRACTICE.md` for the DVC steps
    └── Push everything and share the repo link
 
-2. GIT/DVC PRACTICE
+2. GIT/DVC/CI PRACTICE
    ├── Practice: open a PR, self-review it with the checklist
-   └── Practice: dvc exp run with 2+ different hyperparameter values
+   ├── Practice: `git fetch origin pull/<n>/head:review` a real PR (yours
+   │   or a classmate's) and run it locally instead of only reading the diff
+   ├── Practice: dvc exp run with 2+ different hyperparameter values
+   │   (try it on `lab/params.yaml` -- e.g. train.lr or train.loss_fn)
+   └── Stretch: add a `.github/workflows/ci.yml` that lints and smoke-trains
+       on every PR (see Section 4)
 
 3. READING FOR CLASS 3
    ├── Skim: "Designing Machine Learning Systems" ch. on data pipelines
@@ -839,6 +1011,8 @@ RESOURCES:
 • DVC docs: https://dvc.org/doc
 • Model Cards paper: https://arxiv.org/abs/1810.03993
 • Conventional Commits: https://www.conventionalcommits.org
+• GitHub Actions docs: https://docs.github.com/actions
+• CML (metrics-on-PR): https://cml.dev
 ```
 
 ---
@@ -859,6 +1033,13 @@ RESOURCES:
 │                                                                             │
 │  ✓ Model cards make a model's intended use, performance, and limitations   │
 │    explicit — for teammates, downstream users, and future you             │
+│                                                                             │
+│  ✓ Reviewing "via git" means running a teammate's branch locally, not      │
+│    just reading a diff — branch protection + CI turn the checklist into   │
+│    something enforced, not just remembered                                │
+│                                                                             │
+│  ✓ GitHub Actions CI/CD for ML adds two things standard software CI       │
+│    doesn't need: pulling DVC-tracked data, and a smoke-train step         │
 │                                                                             │
 │  ✓ Good tooling turns a personal experiment into team-reviewable,          │
 │    production-ready work                                                  │
