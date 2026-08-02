@@ -16,7 +16,15 @@ dvc.lock
 outputs/*.pt
 outputs/*.npy
 outputs/*.png
-
+*.png
+*.gif
+	../.DS_Store
+	../1779470589468.gif
+	../1780209743585.jpeg
+	../1780388903274.jpeg
+	../1780400559571.jpeg
+	../1780508808043.jpeg
+	../1780783450370.jpeg
 # Python
 __pycache__/
 *.pyc
